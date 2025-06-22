@@ -95,6 +95,7 @@ A modern 3D Snake game built with React, TypeScript, and Three.js. This is a ful
 ## Changelog
 - June 22, 2025. Initial setup
 - June 22, 2025. Implemented unique player system with pseudo management
+- June 22, 2025. Connected project with GitHub repository https://github.com/MINIBOY-2D/SnakeBattle
 
 ## User Preferences
 Preferred communication style: Simple, everyday language (French for UI elements).
