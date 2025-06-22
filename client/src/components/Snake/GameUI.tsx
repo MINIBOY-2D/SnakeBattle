@@ -13,9 +13,9 @@ import {
   Trophy
 } from "lucide-react";
 import { useSnake } from "../../lib/stores/useSnake";
-import { useLeaderboard } from "../../lib/stores/useLeaderboard";
+import { useFirebaseLeaderboard } from "../../lib/stores/useFirebaseLeaderboard";
 import { useAudio } from "../../lib/stores/useAudio";
-import { usePlayer } from "../../lib/stores/usePlayer";
+import { useFirebasePlayer } from "../../lib/stores/useFirebasePlayer";
 import { Leaderboard } from "./Leaderboard";
 import { ScoreNotification } from "./ScoreNotification";
 
@@ -32,9 +32,9 @@ export function GameUI() {
     restart,
   } = useSnake();
   
-  const { addEntry, updatePlayerName } = useLeaderboard();
+  const { addEntry, updatePlayerName } = useFirebaseLeaderboard();
   const { isMuted, toggleMute, playSuccess } = useAudio();
-  const { setPlayer, updatePlayerName: updatePlayerNameInStore, getPlayer } = usePlayer();
+  const { createOrGetPlayer, updatePlayerName: updatePlayerNameInStore, getPlayer, initializePlayer } = useFirebasePlayer();
   
   const [playerName, setPlayerName] = useState("");
   const [showNameInput, setShowNameInput] = useState(false);
@@ -44,6 +44,11 @@ export function GameUI() {
   const [isNewRecord, setIsNewRecord] = useState(false);
   const [previousBest, setPreviousBest] = useState(0);
   
+  // Initialize Firebase player
+  useEffect(() => {
+    initializePlayer();
+  }, [initializePlayer]);
+
   // Initialize player name from stored player
   useEffect(() => {
     const player = getPlayer();
@@ -89,33 +94,42 @@ export function GameUI() {
     restart();
   };
   
-  const handleSaveScore = () => {
+  const handleSaveScore = async () => {
     if (score > 0 && !savedToLeaderboard) {
-      const finalPlayerName = playerName.trim() || "Anonymous";
-      const playerId = setPlayer(finalPlayerName);
-      
-      // Get player's previous best score
-      const { getPlayerBestScore } = useLeaderboard.getState();
-      const playerBestScore = getPlayerBestScore(playerId);
-      const isRecord = score > playerBestScore;
-      
-      // Update player name in store if it changed
-      if (!isNewPlayer && finalPlayerName !== getPlayer()?.name) {
-        updatePlayerNameInStore(finalPlayerName);
-        updatePlayerName(playerId, finalPlayerName);
+      try {
+        const finalPlayerName = playerName.trim() || "Anonymous";
+        const player = getPlayer();
+        const ipAddress = player?.ip || "unknown";
+        
+        const playerId = await createOrGetPlayer(finalPlayerName, ipAddress);
+        
+        // Get player's previous best score
+        const { getPlayerBestScore } = useFirebaseLeaderboard.getState();
+        const playerBestScore = getPlayerBestScore(playerId);
+        const isRecord = score > playerBestScore;
+        
+        // Update player name in store if it changed
+        if (!isNewPlayer && finalPlayerName !== getPlayer()?.name) {
+          await updatePlayerNameInStore(finalPlayerName);
+          await updatePlayerName(playerId, finalPlayerName);
+        }
+        
+        await addEntry(playerId, finalPlayerName, score, snake.length, ipAddress);
+        
+        setSavedToLeaderboard(true);
+        setShowNameInput(false);
+        setIsNewPlayer(false);
+        
+        // Show notification
+        setIsNewRecord(isRecord);
+        setPreviousBest(playerBestScore);
+        setShowNotification(true);
+        
+        playSuccess();
+      } catch (error) {
+        console.error("Error saving score:", error);
+        // Could show error message to user here
       }
-      
-      addEntry(playerId, finalPlayerName, score, snake.length);
-      setSavedToLeaderboard(true);
-      setShowNameInput(false);
-      setIsNewPlayer(false);
-      
-      // Show notification
-      setIsNewRecord(isRecord);
-      setPreviousBest(playerBestScore);
-      setShowNotification(true);
-      
-      playSuccess();
     }
   };
   

@@ -4,12 +4,12 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
 import { User, Edit3, Save, X, Trophy } from "lucide-react";
-import { usePlayer } from "../../lib/stores/usePlayer";
-import { useLeaderboard } from "../../lib/stores/useLeaderboard";
+import { useFirebasePlayer } from "../../lib/stores/useFirebasePlayer";
+import { useFirebaseLeaderboard } from "../../lib/stores/useFirebaseLeaderboard";
 
 export function PlayerProfile() {
-  const { getPlayer, updatePlayerName, clearPlayer } = usePlayer();
-  const { updatePlayerName: updateLeaderboardNames, getPlayerEntries, getPlayerBestScore } = useLeaderboard();
+  const { getPlayer, updatePlayerName, clearPlayer } = useFirebasePlayer();
+  const { updatePlayerName: updateLeaderboardNames, getPlayerEntries, getPlayerBestScore } = useFirebaseLeaderboard();
   
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState("");
@@ -25,11 +25,15 @@ export function PlayerProfile() {
     setIsEditing(true);
   };
   
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (player && newName.trim() && newName.trim() !== player.name) {
       const trimmedName = newName.trim();
-      updatePlayerName(trimmedName);
-      updateLeaderboardNames(player.id, trimmedName);
+      try {
+        await updatePlayerName(trimmedName);
+        await updateLeaderboardNames(player.id, trimmedName);
+      } catch (error) {
+        console.error("Error updating player name:", error);
+      }
     }
     setIsEditing(false);
     setNewName("");

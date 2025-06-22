@@ -4,8 +4,10 @@ import { GameBoard } from "./components/Snake/GameBoard";
 import { GameUI } from "./components/Snake/GameUI";
 import { TouchControls } from "./components/Snake/TouchControls";
 import { PlayerProfile } from "./components/Snake/PlayerProfile";
+import { FirebaseStatus } from "./components/Snake/FirebaseStatus";
 import { useSnake } from "./lib/stores/useSnake";
 import { useAudio } from "./lib/stores/useAudio";
+import { useFirebaseLeaderboard } from "./lib/stores/useFirebaseLeaderboard";
 import "@fontsource/inter";
 
 const queryClient = new QueryClient();
@@ -13,7 +15,15 @@ const queryClient = new QueryClient();
 function SnakeGame() {
   const { setDirection, phase } = useSnake();
   const { setHitSound, setSuccessSound, setBackgroundMusic } = useAudio();
+  const { loadLeaderboard, subscribeToLeaderboard } = useFirebaseLeaderboard();
   
+  // Initialize Firebase leaderboard
+  useEffect(() => {
+    loadLeaderboard();
+    const unsubscribe = subscribeToLeaderboard();
+    return () => unsubscribe();
+  }, [loadLeaderboard, subscribeToLeaderboard]);
+
   // Initialize audio
   useEffect(() => {
     const hitAudio = new Audio("/sounds/hit.mp3");
@@ -77,6 +87,7 @@ function SnakeGame() {
           <p className="text-gray-400">
             Classic Snake with ranking system - Eat food, grow longer, avoid collisions!
           </p>
+          <FirebaseStatus />
         </div>
         
         {/* Game Layout */}

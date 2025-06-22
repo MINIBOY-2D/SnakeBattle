@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Trophy, Medal, Award, Trash2 } from "lucide-react";
-import { useLeaderboard } from "../../lib/stores/useLeaderboard";
+import { useFirebaseLeaderboard } from "../../lib/stores/useFirebaseLeaderboard";
 
 interface LeaderboardProps {
   currentScore?: number;
@@ -12,7 +12,7 @@ interface LeaderboardProps {
 }
 
 export function Leaderboard({ currentScore, highlightScore = false, currentPlayerId }: LeaderboardProps) {
-  const { getTopEntries, getRank, clearLeaderboard } = useLeaderboard();
+  const { getTopEntries, getRank, loading, error } = useFirebaseLeaderboard();
   
   const topEntries = getTopEntries(10);
   const currentRank = currentScore ? getRank(currentScore) : null;
@@ -41,16 +41,7 @@ export function Leaderboard({ currentScore, highlightScore = false, currentPlaye
           <Trophy className="w-6 h-6 text-yellow-500" />
           Leaderboard
         </CardTitle>
-        {topEntries.length > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearLeaderboard}
-            className="text-gray-400 hover:text-red-400"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        )}
+
       </CardHeader>
       
       <CardContent className="space-y-3">
@@ -68,15 +59,26 @@ export function Leaderboard({ currentScore, highlightScore = false, currentPlaye
           </div>
         )}
         
-        {topEntries.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-8 text-gray-400">
+            <div className="animate-spin w-8 h-8 border-2 border-yellow-500 border-t-transparent rounded-full mx-auto mb-3"></div>
+            <p>Chargement du classement...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-8 text-red-400">
+            <Trophy className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p>{error}</p>
+            <p className="text-sm">Vérifiez votre connexion internet.</p>
+          </div>
+        ) : topEntries.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
             <Trophy className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>No scores yet!</p>
-            <p className="text-sm">Be the first to play and set a record.</p>
+            <p>Aucun score enregistré!</p>
+            <p className="text-sm">Soyez le premier à jouer et établir un record.</p>
           </div>
         ) : (
           <div className="space-y-2">
-            {topEntries.map((entry, index) => (
+            {topEntries.map((entry: any, index: number) => (
               <div
                 key={entry.id}
                 className={`flex items-center justify-between p-3 rounded-lg transition-colors ${

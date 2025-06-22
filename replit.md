@@ -109,3 +109,8 @@ Preferred communication style: Simple, everyday language (French for UI elements
 - Implemented score replacement system: when player beats their best score, old scores are automatically deleted
 - Added visual notification system for new records vs regular scores
 - Enhanced French localization for user interface elements
+- Integrated Firebase Firestore for cloud data storage
+- Added IP-based player detection to prevent multiple accounts
+- Removed leaderboard clear button for regular users
+- Added real-time leaderboard synchronization across devices
+- Implemented browser fingerprinting as IP detection fallback
