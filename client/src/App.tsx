@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GameBoard } from "./components/Snake/GameBoard";
 import { GameUI } from "./components/Snake/GameUI";
 import { TouchControls } from "./components/Snake/TouchControls";
+import { PlayerProfile } from "./components/Snake/PlayerProfile";
 import { useSnake } from "./lib/stores/useSnake";
 import { useAudio } from "./lib/stores/useAudio";
 import "@fontsource/inter";
@@ -79,9 +80,14 @@ function SnakeGame() {
         </div>
         
         {/* Game Layout */}
-        <div className="flex flex-col lg:flex-row gap-6 items-start justify-center">
+        <div className="flex flex-col xl:flex-row gap-6 items-start justify-center">
+          {/* Left Sidebar - Player Profile */}
+          <div className="w-full xl:w-80 order-2 xl:order-1">
+            <PlayerProfile />
+          </div>
+          
           {/* Game Board */}
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-4 order-1 xl:order-2">
             <GameBoard width={600} height={400} />
             
             {/* Touch Controls - Show on smaller screens */}
@@ -91,7 +97,7 @@ function SnakeGame() {
           </div>
           
           {/* Game UI */}
-          <div className="w-full lg:w-80">
+          <div className="w-full xl:w-80 order-3">
             <GameUI />
           </div>
         </div>

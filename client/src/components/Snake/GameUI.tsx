@@ -15,6 +15,7 @@ import {
 import { useSnake } from "../../lib/stores/useSnake";
 import { useLeaderboard } from "../../lib/stores/useLeaderboard";
 import { useAudio } from "../../lib/stores/useAudio";
+import { usePlayer } from "../../lib/stores/usePlayer";
 import { Leaderboard } from "./Leaderboard";
 
 export function GameUI() {
@@ -30,13 +31,26 @@ export function GameUI() {
     restart,
   } = useSnake();
   
-  const { addEntry } = useLeaderboard();
+  const { addEntry, updatePlayerName } = useLeaderboard();
   const { isMuted, toggleMute, playSuccess } = useAudio();
+  const { setPlayer, updatePlayerName: updatePlayerNameInStore, getPlayer } = usePlayer();
   
   const [playerName, setPlayerName] = useState("");
   const [showNameInput, setShowNameInput] = useState(false);
   const [savedToLeaderboard, setSavedToLeaderboard] = useState(false);
+  const [isNewPlayer, setIsNewPlayer] = useState(false);
   
+  // Initialize player name from stored player
+  useEffect(() => {
+    const player = getPlayer();
+    if (player) {
+      setPlayerName(player.name);
+      setIsNewPlayer(false);
+    } else {
+      setIsNewPlayer(true);
+    }
+  }, [getPlayer]);
+
   // Reset states when game restarts
   useEffect(() => {
     if (phase === "ready") {
@@ -70,9 +84,19 @@ export function GameUI() {
   
   const handleSaveScore = () => {
     if (score > 0 && !savedToLeaderboard) {
-      addEntry(playerName || "Anonymous", score, snake.length);
+      const finalPlayerName = playerName.trim() || "Anonymous";
+      const playerId = setPlayer(finalPlayerName);
+      
+      // Update player name in store if it changed
+      if (!isNewPlayer && finalPlayerName !== getPlayer()?.name) {
+        updatePlayerNameInStore(finalPlayerName);
+        updatePlayerName(playerId, finalPlayerName);
+      }
+      
+      addEntry(playerId, finalPlayerName, score, snake.length);
       setSavedToLeaderboard(true);
       setShowNameInput(false);
+      setIsNewPlayer(false);
       playSuccess();
     }
   };
@@ -192,12 +216,22 @@ export function GameUI() {
                       className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
                     >
                       <Trophy className="w-4 h-4 mr-2" />
-                      Save to Leaderboard
+                      {isNewPlayer ? "Save to Leaderboard" : "Add Score"}
                     </Button>
                   ) : (
                     <div className="space-y-2">
+                      {isNewPlayer && (
+                        <div className="text-sm text-gray-400 mb-2">
+                          Entrez votre pseudo (vous pourrez le changer plus tard)
+                        </div>
+                      )}
+                      {!isNewPlayer && (
+                        <div className="text-sm text-gray-400 mb-2">
+                          Pseudo actuel: {getPlayer()?.name || "Anonymous"}
+                        </div>
+                      )}
                       <Input
-                        placeholder="Enter your name"
+                        placeholder={isNewPlayer ? "Entrez votre pseudo" : "Nouveau pseudo (optionnel)"}
                         value={playerName}
                         onChange={(e) => setPlayerName(e.target.value)}
                         className="bg-gray-800 border-gray-600 text-white"
@@ -213,14 +247,14 @@ export function GameUI() {
                           onClick={handleSaveScore}
                           className="flex-1 bg-yellow-600 hover:bg-yellow-700"
                         >
-                          Save Score
+                          {isNewPlayer ? "Créer et Sauvegarder" : "Sauvegarder Score"}
                         </Button>
                         <Button 
                           onClick={() => setShowNameInput(false)}
                           variant="outline"
                           className="bg-gray-800 border-gray-600"
                         >
-                          Cancel
+                          Annuler
                         </Button>
                       </div>
                     </div>
@@ -250,6 +284,7 @@ export function GameUI() {
       <Leaderboard 
         currentScore={phase === "ended" ? score : undefined}
         highlightScore={phase === "ended" && score > 0}
+        currentPlayerId={getPlayer()?.id}
       />
     </div>
   );

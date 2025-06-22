@@ -8,9 +8,10 @@ import { useLeaderboard } from "../../lib/stores/useLeaderboard";
 interface LeaderboardProps {
   currentScore?: number;
   highlightScore?: boolean;
+  currentPlayerId?: string;
 }
 
-export function Leaderboard({ currentScore, highlightScore = false }: LeaderboardProps) {
+export function Leaderboard({ currentScore, highlightScore = false, currentPlayerId }: LeaderboardProps) {
   const { getTopEntries, getRank, clearLeaderboard } = useLeaderboard();
   
   const topEntries = getTopEntries(10);
@@ -79,9 +80,11 @@ export function Leaderboard({ currentScore, highlightScore = false }: Leaderboar
               <div
                 key={entry.id}
                 className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
-                  index < 3 
-                    ? "bg-gradient-to-r from-yellow-900/30 to-amber-900/30 border border-yellow-600/30" 
-                    : "bg-gray-800 hover:bg-gray-750"
+                  currentPlayerId && entry.playerId === currentPlayerId
+                    ? "bg-gradient-to-r from-blue-900/40 to-blue-800/40 border border-blue-600/50"
+                    : index < 3 
+                      ? "bg-gradient-to-r from-yellow-900/30 to-amber-900/30 border border-yellow-600/30" 
+                      : "bg-gray-800 hover:bg-gray-750"
                 }`}
               >
                 <div className="flex items-center gap-3">

@@ -20,6 +20,7 @@ export interface GameSettings {
 
 export interface LeaderboardEntry {
   id: string;
+  playerId: string;
   playerName: string;
   score: number;
   length: number;

@@ -6,8 +6,11 @@ interface LeaderboardState {
   entries: LeaderboardEntry[];
   
   // Actions
-  addEntry: (playerName: string, score: number, length: number) => LeaderboardEntry;
+  addEntry: (playerId: string, playerName: string, score: number, length: number) => LeaderboardEntry;
+  updatePlayerName: (playerId: string, newName: string) => void;
   getTopEntries: (limit?: number) => LeaderboardEntry[];
+  getPlayerEntries: (playerId: string) => LeaderboardEntry[];
+  getPlayerBestScore: (playerId: string) => number;
   getRank: (score: number) => number;
   clearLeaderboard: () => void;
 }
@@ -17,9 +20,10 @@ export const useLeaderboard = create<LeaderboardState>()(
     (set, get) => ({
       entries: [],
       
-      addEntry: (playerName: string, score: number, length: number) => {
+      addEntry: (playerId: string, playerName: string, score: number, length: number) => {
         const newEntry: LeaderboardEntry = {
           id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          playerId,
           playerName: playerName.trim() || "Anonymous",
           score,
           length,
@@ -35,6 +39,27 @@ export const useLeaderboard = create<LeaderboardState>()(
         });
         
         return newEntry;
+      },
+      
+      updatePlayerName: (playerId: string, newName: string) => {
+        set((state) => {
+          const updatedEntries = state.entries.map(entry => 
+            entry.playerId === playerId 
+              ? { ...entry, playerName: newName.trim() || "Anonymous" }
+              : entry
+          );
+          
+          return { entries: updatedEntries };
+        });
+      },
+      
+      getPlayerEntries: (playerId: string) => {
+        return get().entries.filter(entry => entry.playerId === playerId);
+      },
+      
+      getPlayerBestScore: (playerId: string) => {
+        const playerEntries = get().entries.filter(entry => entry.playerId === playerId);
+        return playerEntries.length > 0 ? Math.max(...playerEntries.map(entry => entry.score)) : 0;
       },
       
       getTopEntries: (limit = 10) => {

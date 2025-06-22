@@ -94,6 +94,15 @@ A modern 3D Snake game built with React, TypeScript, and Three.js. This is a ful
 
 ## Changelog
 - June 22, 2025. Initial setup
+- June 22, 2025. Implemented unique player system with pseudo management
 
 ## User Preferences
-Preferred communication style: Simple, everyday language.
+Preferred communication style: Simple, everyday language (French for UI elements).
+
+## Recent Changes
+- Created unique player ID system with persistent storage
+- Players can now create one pseudo and update it later
+- All historical scores update when player changes their name
+- Added PlayerProfile component for player management
+- Enhanced leaderboard to highlight current player's scores
+- Integrated player system with game scoring and leaderboard
