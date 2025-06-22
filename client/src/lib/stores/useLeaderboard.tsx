@@ -31,11 +31,28 @@ export const useLeaderboard = create<LeaderboardState>()(
         };
         
         set((state) => {
-          const newEntries = [...state.entries, newEntry]
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 100); // Keep top 100 entries
+          // Find existing entries for this player
+          const existingPlayerEntries = state.entries.filter(entry => entry.playerId === playerId);
+          const playerBestScore = existingPlayerEntries.length > 0 
+            ? Math.max(...existingPlayerEntries.map(entry => entry.score)) 
+            : 0;
           
-          return { entries: newEntries };
+          let updatedEntries = [...state.entries];
+          
+          // If new score is better than player's best, remove all previous scores for this player
+          if (score > playerBestScore) {
+            updatedEntries = state.entries.filter(entry => entry.playerId !== playerId);
+          }
+          
+          // Add the new entry
+          updatedEntries.push(newEntry);
+          
+          // Sort and keep top 100
+          const finalEntries = updatedEntries
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 100);
+          
+          return { entries: finalEntries };
         });
         
         return newEntry;

@@ -106,3 +106,6 @@ Preferred communication style: Simple, everyday language (French for UI elements
 - Added PlayerProfile component for player management
 - Enhanced leaderboard to highlight current player's scores
 - Integrated player system with game scoring and leaderboard
+- Implemented score replacement system: when player beats their best score, old scores are automatically deleted
+- Added visual notification system for new records vs regular scores
+- Enhanced French localization for user interface elements

@@ -17,6 +17,7 @@ import { useLeaderboard } from "../../lib/stores/useLeaderboard";
 import { useAudio } from "../../lib/stores/useAudio";
 import { usePlayer } from "../../lib/stores/usePlayer";
 import { Leaderboard } from "./Leaderboard";
+import { ScoreNotification } from "./ScoreNotification";
 
 export function GameUI() {
   const {
@@ -39,6 +40,9 @@ export function GameUI() {
   const [showNameInput, setShowNameInput] = useState(false);
   const [savedToLeaderboard, setSavedToLeaderboard] = useState(false);
   const [isNewPlayer, setIsNewPlayer] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
+  const [isNewRecord, setIsNewRecord] = useState(false);
+  const [previousBest, setPreviousBest] = useState(0);
   
   // Initialize player name from stored player
   useEffect(() => {
@@ -56,6 +60,9 @@ export function GameUI() {
     if (phase === "ready") {
       setShowNameInput(false);
       setSavedToLeaderboard(false);
+      setShowNotification(false);
+      setIsNewRecord(false);
+      setPreviousBest(0);
     }
   }, [phase]);
   
@@ -87,6 +94,11 @@ export function GameUI() {
       const finalPlayerName = playerName.trim() || "Anonymous";
       const playerId = setPlayer(finalPlayerName);
       
+      // Get player's previous best score
+      const { getPlayerBestScore } = useLeaderboard.getState();
+      const playerBestScore = getPlayerBestScore(playerId);
+      const isRecord = score > playerBestScore;
+      
       // Update player name in store if it changed
       if (!isNewPlayer && finalPlayerName !== getPlayer()?.name) {
         updatePlayerNameInStore(finalPlayerName);
@@ -97,6 +109,12 @@ export function GameUI() {
       setSavedToLeaderboard(true);
       setShowNameInput(false);
       setIsNewPlayer(false);
+      
+      // Show notification
+      setIsNewRecord(isRecord);
+      setPreviousBest(playerBestScore);
+      setShowNotification(true);
+      
       playSuccess();
     }
   };
@@ -264,7 +282,7 @@ export function GameUI() {
               
               {savedToLeaderboard && (
                 <div className="text-green-400 font-medium">
-                  ✓ Score saved to leaderboard!
+                  ✓ Score sauvegardé dans le classement !
                 </div>
               )}
               
@@ -285,6 +303,15 @@ export function GameUI() {
         currentScore={phase === "ended" ? score : undefined}
         highlightScore={phase === "ended" && score > 0}
         currentPlayerId={getPlayer()?.id}
+      />
+      
+      {/* Score Notification */}
+      <ScoreNotification
+        isNewRecord={isNewRecord}
+        score={score}
+        previousBest={previousBest}
+        show={showNotification}
+        onComplete={() => setShowNotification(false)}
       />
     </div>
   );
